@@ -95,7 +95,7 @@
     - #### ``` @Transactional ```
 
 - ### DI Annotations from JDK
-    | ![JSR_250_330_Annotations](images/JSR_250_330_Annotations.png "JSR_250_330_Annotations") |
+    | ![JSR_250_330_Annotations](diagrams/JSR_250_330_Annotations.png "JSR_250_330_Annotations") |
     | --- |
 
 
@@ -144,7 +144,7 @@
   - #### Spring Container loads the resource based on the prefix of the String value
   - #### Spring Container uses different classes to instantiate an App Context
       - based on the prefix of the provided String value
-        ![](images/Resource_String_Prefix_and_Corresponding_Paths.png "") 
+        ![Resource_String_Prefix_and_Corresponding_Paths](diagrams/Resource_String_Prefix_and_Corresponding_Paths.png "") 
 
 ### How to Load a Resource
   - The App Context must implement interface 
@@ -242,7 +242,7 @@
         ``` 
         void setEnvironment(Environment environment)
         ```
-        | ![PropertySourcesPlaceholderConfigurer_depends_on_Environment](images/PropertySourcesPlaceholderConfigurer_depends_on_Environment.png "PropertySourcesPlaceholderConfigurer_depends_on_Environment") |
+        | ![PropertySourcesPlaceholderConfigurer_depends_on_Environment](diagrams/PropertySourcesPlaceholderConfigurer_depends_on_Environment.png "PropertySourcesPlaceholderConfigurer_depends_on_Environment") |
         | --- |
 
   ``` 
