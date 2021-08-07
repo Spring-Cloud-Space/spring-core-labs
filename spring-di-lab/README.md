@@ -10,7 +10,7 @@
 
 ## The Annotations
 
-| ![Spring_DI_Annotations](images/Spring_DI_Annotations.png "Spring_DI_Annotations") |
+| ![Spring_DI_Annotations](diagrams/Spring_DI_Annotations.png "Spring_DI_Annotations") |
 | --- |
 
 - ### Stereotype Annotations
