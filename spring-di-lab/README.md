@@ -293,6 +293,54 @@
    ```
 
 
+### [``` @PropertySource ``` with ``` YAML ``` Files](https://www.baeldung.com/spring-yaml-propertysource)
+
+``` 
+@Slf4j
+@Configuration
+@PropertySource(
+        value = "classpath:data/datasource.yml",
+        factory = AppDataResourceCfg.YamlPropertySourceFactory.class)
+public class AppDataResourceCfg {
+
+    @Bean
+    static PropertySourcesPlaceholderConfigurer
+    propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+
+    @Bean
+    SimpleBean simpleBean(
+            @Value("${spring.core.di.simpleBeanId}") String uuidStr,
+            @Value("${spring.core.di.simpleBeanIsComplicated}") String isComplicatedStr) {
+
+        return new DiSimpleBean(
+                UUID.fromString(uuidStr),
+                Boolean.getBoolean(isComplicatedStr));
+    }
+
+    static class YamlPropertySourceFactory implements PropertySourceFactory {
+
+        @Override
+        public org.springframework.core.env.PropertySource<?> createPropertySource(
+                String name, EncodedResource encodedResource) throws IOException {
+
+            YamlPropertiesFactoryBean yamlPropertiesFactory =
+                    new YamlPropertiesFactoryBean();
+            Resource resource = encodedResource.getResource();
+            yamlPropertiesFactory.setResources(resource);
+
+            Properties properties = yamlPropertiesFactory.getObject();
+
+            return new PropertiesPropertySource(resource.getFilename(), properties);
+        }
+    }
+
+}///:~
+```
+
+
+
 ## Injection Types
 
 ### Overview 
