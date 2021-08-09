@@ -455,3 +455,11 @@ The bean first needs to be instantiated, and then the bean must be initialized
 ### The constructor injection combines two steps into one
 - instantiating
 - initializing 
+
+### Assignment 
+> Define two beans, one of type Person, one of type Book, make sure the book 
+> bean is injected into the person bean
+
+``` 
+
+```

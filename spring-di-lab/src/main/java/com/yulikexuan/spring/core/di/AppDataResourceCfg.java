@@ -43,6 +43,16 @@ public class AppDataResourceCfg {
                 Boolean.getBoolean(isComplicatedStr));
     }
 
+    @Bean
+    Item book(@Value("${spring.core.di.assignment.book.title}") String title) {
+        return new Book(title);
+    }
+
+    @Bean
+    Human person(Item book) {
+        return new Person(book);
+    }
+
     static class YamlPropertySourceFactory implements PropertySourceFactory {
 
         @Override

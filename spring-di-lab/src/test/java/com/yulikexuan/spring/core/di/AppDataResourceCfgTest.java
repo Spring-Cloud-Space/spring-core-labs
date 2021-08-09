@@ -70,4 +70,18 @@ class AppDataResourceCfgTest {
         assertThat(isComplicated).isFalse();
     }
 
+    @Test
+    void validate_Properties_Of_Person_And_Book() {
+
+        // Given
+        Human person = dataResAppCfg.getBean(Human.class);
+        Item book = person.getItem();
+
+        // When
+        String title = book.getTitle();
+
+        // Then
+        assertThat(title).isEqualTo("Nevermore");
+    }
+
 }
