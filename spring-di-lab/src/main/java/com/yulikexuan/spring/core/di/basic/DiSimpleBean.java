@@ -1,6 +1,6 @@
-//: com.yulikexuan.spring.core.di.DiSimpleBean.java
+//: com.yulikexuan.spring.core.di.basic.DiSimpleBean.java
 
-package com.yulikexuan.spring.core.di;
+package com.yulikexuan.spring.core.di.basic;
 
 
 import java.util.Objects;

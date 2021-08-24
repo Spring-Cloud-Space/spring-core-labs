@@ -10,7 +10,7 @@
 
 ## The Annotations
 
-| ![Spring_DI_Annotations](diagrams/Spring_DI_Annotations.png "Spring_DI_Annotations") |
+| ![Spring_DI_Annotations](images/Spring_DI_Annotations.png "Spring_DI_Annotations") |
 | --- |
 
 - ### Stereotype Annotations
@@ -95,7 +95,7 @@
     - #### ``` @Transactional ```
 
 - ### DI Annotations from JDK
-    | ![JSR_250_330_Annotations](diagrams/JSR_250_330_Annotations.png "JSR_250_330_Annotations") |
+    | ![JSR_250_330_Annotations](images/JSR_250_330_Annotations.png "JSR_250_330_Annotations") |
     | --- |
 
 
@@ -144,7 +144,7 @@
   - #### Spring Container loads the resource based on the prefix of the String value
   - #### Spring Container uses different classes to instantiate an App Context
       - based on the prefix of the provided String value
-        ![Resource_String_Prefix_and_Corresponding_Paths](diagrams/Resource_String_Prefix_and_Corresponding_Paths.png "") 
+        ![Resource_String_Prefix_and_Corresponding_Paths](images/Resource_String_Prefix_and_Corresponding_Paths.png "") 
 
 ### How to Load a Resource
   - The App Context must implement interface 
@@ -242,7 +242,7 @@
         ``` 
         void setEnvironment(Environment environment)
         ```
-        | ![PropertySourcesPlaceholderConfigurer_depends_on_Environment](diagrams/PropertySourcesPlaceholderConfigurer_depends_on_Environment.png "PropertySourcesPlaceholderConfigurer_depends_on_Environment") |
+        | ![PropertySourcesPlaceholderConfigurer_depends_on_Environment](images/PropertySourcesPlaceholderConfigurer_depends_on_Environment.png "PropertySourcesPlaceholderConfigurer_depends_on_Environment") |
         | --- |
 
   ``` 
@@ -460,6 +460,482 @@ The bean first needs to be instantiated, and then the bean must be initialized
 > Define two beans, one of type Person, one of type Book, make sure the book 
 > bean is injected into the person bean
 
+
+## Setter Injection
+
+### Require Setter Method
+
+### The Construction Sequence
+- #### Instantiating: The bean is Instantiated with Constructors
+    - If there are any dependencies declared as arguments for the constructor 
+      these will be obviously initialized first 
+- #### Initializing: Inject dependencies with using Setters
+    - If the constructor does not require arguments, the bean is then initialized 
+      by injecting the dependencies using setters
+
+### Require adding ``` @Autowired ``` to Setters
+
+
+## Field Injection
+
+### The ``` @Autowired ``` Annotation is placed directly on a Class Field
+- The Spring IoC Container injects a bean as value to the field when the 
+  application is started
+
+
+## Bean Scopes
+
+> A Bean Scope is a term that describes how long a bean’s lifespan is
+
+### Spring refers to the beans as Singletons
+
+### Singleton is the default scope
+  - A singleton bean is created when the application is bootstrapped
+  - A singleton bean is managed by the Spring IoC container until the application 
+    is shutdown or the context is closed
+
+### The Spring IoC creates a Single Instance for each Bean
+- which is destroyed when the application context is shut down
+
+### Use ``` @Scope ``` to change the Scope of a Bean
+
+| ![BeanScopes](images/BeanScopes.png "BeanScopes") |
+| --- |
+
+### Constants Matching the Scope Types
+
+``` 
+ConfigurableBeanFactory.SCOPE_PROTOTYPE
+ConfigurableBeanFactory.SCOPE_SINGLETON
+```
+
+``` 
+WebApplicationContext.SCOPE_REQUEST
+WebApplicationContext.SCOPE_SESSION
+WebApplicationContext.SCOPE_APPLICATION
+```
+
+### Solve Dependencies between Beans with Different Scopes
+
+#### A Prototype Bean depends on a Singleton Bean
+- Every time the prototype bean is requested from the context, a new instance 
+  is created
+
+#### A Singleton Bean Depends on a Prototype Bean
+
+#### How Can Spring IoC Refresh the dependency on the Non_Singleton Bean
+- The ``` ScopedProxyMode ``` enum is part spring-context module
+- The ``` ScopedProxyMode ``` contains a list of values for scoped-proxy options
+    - ``` DEFAULT ``` typically equals NO, unless a different default has been 
+      configured at the component-scan instruction level 
+    - ``` INTERFACES ``` Create a JDK Dynamic Proxy implementing all interfaces 
+      exposed by the class of the target object 
+    - ``` NO ``` Do not create a scoped proxy
+    - ``` TARGET_CLASS ``` Create a class-based proxy (uses CGLIB)
+
+#### ``` SCOPE_PROTOTYPE ``` should always work with a ScopedProxyMode
+- ``` INTERFACE ``` or ``` TARGET_CLASS ```
+- if this Prototype Bean will be used in any Singleton Bean
+
+| ![Proxy_Bean_Behavior_for_Scope_Prototype](images/Proxy_Bean_Behavior_for_Scope_Prototype.png "Proxy_Bean_Behavior_for_Scope_Prototype") |
+| --- |
+
+
+## ``` @AliasFor ```
+
+### ``` @AliasFor ``` is to declare aliases for Annotation's Attributes
+
+``` 
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public @interface SalaryScope {
+
+    // Equivalent to @AliasFor(annotation = Scope.class, attribute = "value")
+    @AliasFor(annotation = Scope.class)
+    String value() default "";
+
+    // Equivalent to @AliasFor(annotation = Scope.class, attribute = "scopeName")
+    @AliasFor(annotation = Scope.class)
+    String scopeName() default "";
+
+    // Equivalent to @AliasFor(annotation = Scope.class, attribute = "proxyMode")
+    @AliasFor(annotation = Scope.class)
+    ScopedProxyMode proxyMode() default ScopedProxyMode.INTERFACES;
+
+}///:~
+```
+
+``` 
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Scope {
+
+	@AliasFor("scopeName")
+	String value() default "";
+
+	@AliasFor("value")
+	String scopeName() default "";
+
+	ScopedProxyMode proxyMode() default ScopedProxyMode.DEFAULT;
+
+}
+```
+
+
+## Bean Lifecycle Under the Hood
+- Covers the steps that are executed when a Spring Application is Run
+
+### The Bean Starts Up as 
+- a class that is annotated with a stereotype annotation
+- a class is instantiated in a method annotated with @Bean 
+  from a configuration class
+
+### A Spring App has a Lifecycle of Three Phases
+- #### Initialization / the Bootstrap Phase
+    - Bean definitions are read 
+    - Beans are created 
+    - Dependencies are injected 
+    - Resources are allocated
+    - The App can be used
+- #### Use
+    - The App is up and running
+    - It is used by clients 
+    - Beans are retrieved and used to provide responses for their requests
+- #### Destruction
+    - The context is being shutdown
+    - Resources are released
+    - Beans are handed over to the Garbage Collector
+
+### Detail Steps of an App Context Life
+1. The application context is initialized
+2. The bean definitions are loaded [from the configuration class]
+3. The bean definitions are processed
+4. Beans are instantiated
+5. Dependencies are injected
+6. Beans are processed
+7. Beans are used
+8. The context starts the destruction process
+9. Beans are destroyed
+
+| ![App_Context_And_Bean_Lifecycle](images/App_Context_And_Bean_Lifecycle.png "App_Context_And_Bean_Lifecycle") |
+| --- |
+
+### The Bean Creation Process Stages
+1. ___The beans are Instantiated___, the bean factory is calling the constructor of 
+   each bean
+     - If the bean is created using constructor dependency injection, the 
+       dependency bean is created first and then injected where needed 
+     - For beans that are defined in this way, the instantiation stage coincides 
+       with the dependency injection stage
+2. ___Dependencies are Injected___
+     - For beans that are defined having dependencies injected via setter, this
+       stage is separate from the instantiation stage 
+     - The same goes for dependencies inject using field injection
+3. ___Bean Post Process Beans are invoked BEFORE___ initialization
+4. ___Beans are Initialized
+5. ___Bean Post Process Beans are invoked AFTER___ initialization
+
+### Bean Post Process Beans
+- #### Splited by Initialization Stage into TWO parts
+    - Invoked before the Initialization Stage
+    - Invoked after the Initialization Stage
+- #### A Bean can be a Bean Post Process Bean by having a @PostConstruct method 
+    - This method must return void
+    - Having no argument defined
+    - Having any access identifier, better be ___private___
+- #### The ``` @PostConstruct ``` Annotation 
+    - is part of the JSR 25021
+    - is used on a method that needs to be executed after dependency injection 
+      is done to perform initialization
+    - the annotated method must be invoked before the bean is used
+    - may be called only once during a bean lifecycle 
+    - if there are no dependencies to be injected, the annotated method will be 
+      called after the bean is instantiated
+    - only one method should be annotated with ``` @PostConstruct ```
+    - To use this annotation, 
+        - the ``` jsr250 ``` library must be in the classpath 
+        - dependency of the jsr250.api module must be configured in the 
+         module-info.java file
+    - The method annotated with ``` @PostConstruct ``` 
+        - is picked up by enabling component scanning (annotating configuration 
+          classes with ``` @ComponentScanning ```)
+        - called by a pre-init bean named
+          ```org.springframework.context.annotation.internalCommonAnnotationProcessor ```
+          of a type that implements the 
+          ``` org.springframework.beans.factory.config.BeanPostProcessor ``` 
+          interface named ``` org.springframework.beans.factory.config.BeanPostProcessor ```
+        - ``` CommonAnnotationBeanPostProcessor ``` beans will be detected by 
+          the application context, and instantiated before any other beans in 
+          the container
+    - Post Processors pick up methods that are annotated with ``` @PostConstruct ``` 
+      and implement ``` postProcessBeforeInitialization ```
+    - Post Processors that wrap beans with proxies will normally implement
+      ``` postProcessAfterInitialization ```
+
+| ![BeanPostProcessor](images/BeanPostProcessor.png "BeanPostProcessor") |
+| --- |
+
+``` 
+public interface BeanPostProcessor {
+    @Nullable
+	default Object postProcessBeforeInitialization(Object bean, String beanName) 
+	        throws BeansException {
+		return bean;
+	}
+	@Nullable
+	default Object postProcessAfterInitialization(Object bean, String beanName) 
+	        throws BeansException {
+		return bean;
+	}
+}
+```
+
+| ![App_Context_And_Bean_Lifecycle_BeanPostProcessor](images/App_Context_And_Bean_Lifecycle_BeanPostProcessor.png "App_Context_And_Bean_Lifecycle_BeanPostProcessor") |
+| --- |
+
+### Different Ways of Initializing a Bean Available in Spring
+- Implementing the ``` org.springframework.beans.factory.InitializingBean ``` 
+  interface and providing an implementation for the method ``` afterPropertiesSet ```
+    - Not recommended since it couples the app code with Spring infrastructure
+- Annotating with ``` @PostConstruct ``` the method that is called right after
+  the bean is instantiated and dependencies injected
+- Using Java configuration by annotating an initialization method with 
+  ``` @Bean(initMethod="...") ``` , this method of initialization is very useful 
+  when the code comes from a third-party library or a dependency and cannot be 
+  edited 
+    - ___the responsible for calling this annotated method___ is the same bean factory 
+      which is responsible with the instantiation of the bean as well
+      - DefaultListableBeanFactory
+          - So the execution of this method matches the initialization stage of 
+            a bean
+
+``` 
+class ComplicatedBean {
+
+    private String id;
+
+    ComplicatedBean() {
+        log.info(">>>>>>> Constructing the ComplicatedBean ...");
+    }
+
+    @PostConstruct
+    private void setBeanMonitor() {
+        log.info(">>>>>>> Calling the @PostConstruct annotated method ...");
+    }
+
+    private void initializeId() {
+        log.info(">>>>>>> Initializing the id of the ComplicatedBean ... ");
+        this.id = RandomStringUtils.randomAlphanumeric(17);
+    }
+
+}///:~
+```
+
+``` 
+13:38:17.901 [main] DEBUG o.s.b.f.s.DefaultListableBeanFactory -        Creating shared instance of singleton bean 'complicatedAppCfg'
+13:38:17.901 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Creating instance of bean 'complicatedAppCfg'
+13:38:17.903 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Eagerly caching bean 'complicatedAppCfg' to allow for resolving potential circular references
+13:38:17.904 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Finished creating instance of bean 'complicatedAppCfg'
+13:38:17.904 [main] DEBUG o.s.b.f.s.DefaultListableBeanFactory -        Creating shared instance of singleton bean 'complicatedBean'
+13:38:17.904 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Creating instance of bean 'complicatedBean'
+13:38:17.905 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Returning cached instance of singleton bean 'complicatedAppCfg'
+13:38:17.911 [main] INFO  c.y.s.c.d.b.l.ComplicatedBean -               >>>>>>> Constructing the ComplicatedBean ...
+13:38:17.912 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor -   Found init method on class [com.yulikexuan.spring.core.di.bean.lifecycle.ComplicatedBean]: private void com.yulikexuan.spring.core.di.bean.lifecycle.ComplicatedBean.setBeanMonitor()
+13:38:17.913 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor -   Registered init method on class [com.yulikexuan.spring.core.di.bean.lifecycle.ComplicatedBean]: org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement@6f0eec68
+13:38:17.913 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Eagerly caching bean 'complicatedBean' to allow for resolving potential circular references
+13:38:17.913 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor -   Invoking init method on bean 'complicatedBean': private void com.yulikexuan.spring.core.di.bean.lifecycle.ComplicatedBean.setBeanMonitor()
+13:38:17.913 [main] INFO  c.y.s.c.d.b.l.ComplicatedBean -               >>>>>>> Calling the @PostConstruct annotated method ...
+13:38:17.913 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Invoking init method  'initializeId' on bean with name 'complicatedBean'
+13:38:17.913 [main] INFO  c.y.s.c.d.b.l.ComplicatedBean -               >>>>>>> Initializing the id of the ComplicatedBean ... 
+13:38:17.914 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory -        Finished creating instance of bean 'complicatedBean'
+```
+
+### The End Phase of Bean Lifecycle
+
+> Complex Spring applications can have multiple application contexts, and they 
+> can be closed independently
+
+### Ways to Destroy Beans and Closing Resources (ONLY for Singleton Beans)
+
+1. Implements ``` org.springframework.beans.factory.DisposableBean::destroy ``` method
+     - NOT RECOMMENDED
+     - Matching ``` org.springframework.beans.factory.InitializingBean ```
+     - DisposableBean::destroys work will be delegated to 
+       ``` DisposableBeanAdapter ```
+2. Annotate a method with ``` @PreDestroy ```
+3. In a ``` @Configuration ``` class, using ``` @Bean(destroyMethod="...") ```
+
 ``` 
 
 ```
+class ComplexBean implements Bean, InitializingBean, DisposableBean {
+
+    private final BeanElement beanElement;
+
+    private BeanMonitor beanMonitor;
+
+    @Override
+    public BeanElement getBeanElement() {
+        return this.beanElement;
+    }
+
+    @Override
+    public boolean hasBeanMonitor() {
+        return Objects.nonNull(this.beanMonitor);
+    }
+
+    @PostConstruct
+    private void setBeanMonitor() {
+        log.info(">>>>>>> Calling the @PostConstruct annotated method ...");
+        this.beanMonitor = new BeanMonitor();
+        this.beanMonitor.logBean(this);
+    }
+
+    @PreDestroy
+    private void releaseResources() {
+        log.info(">>>>>>> Destroy resource references ...");
+        beanMonitor.close();
+        beanMonitor = null;
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        log.info(">>>>>>> Calling destroy method of DisposableBean ...");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info(">>>>>>> Calling the afterPrpertiesSet method of InitializingBean ...");
+    }
+
+}///:~
+``` 
+16:47:26.064 [main] INFO  c.y.s.c.d.b.l.BeanLifecycleAppCfgTest - >>>>>>> App Context Initialized. Initialization done.
+16:47:26.411 [main] DEBUG o.s.c.a.AnnotationConfigApplicationContext - Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@616ac46a, started on Sun Aug 22 16:47:25 EDT 2021
+16:47:26.412 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Returning cached instance of singleton bean 'lifecycleProcessor'
+16:47:26.412 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Destroying singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@37efd131: defining beans [org.springframework.context.annotation.internalConfigurationAnnotationProcessor,org.springframework.context.annotation.internalAutowiredAnnotationProcessor,org.springframework.context.annotation.internalCommonAnnotationProcessor,org.springframework.context.event.internalEventListenerProcessor,org.springframework.context.event.internalEventListenerFactory,beanLifecycleAppCfg,complexBean,complicatedAppCfg,simpleBeanElement,complicatedBean]; root of factory hierarchy
+16:47:26.412 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor - Invoking destroy method on bean 'complexBean': private void com.yulikexuan.spring.core.di.bean.lifecycle.ComplexBean.releaseResources()
+16:47:26.412 [main] INFO  c.y.s.c.d.bean.lifecycle.ComplexBean - >>>>>>> Destroy resource references ...
+16:47:26.412 [main] INFO  c.y.s.c.d.bean.lifecycle.BeanMonitor - >>>>>>> Release resources ... 
+16:47:26.412 [main] TRACE o.s.b.f.s.DisposableBeanAdapter - Invoking destroy() on bean with name 'complexBean'
+16:47:26.412 [main] INFO  c.y.s.c.d.bean.lifecycle.ComplexBean - >>>>>>> Calling destroy method of DisposableBean ...
+16:47:26.413 [main] INFO  c.y.s.c.d.b.l.BeanLifecycleAppCfgTest - >>>>>>> App Context Closed. Usage done.
+```
+
+### The rules of the destroy method
+- #### May be called only once during the bean lifecycle
+- #### Can have any accessor but ``` private ``` is recommended
+- #### Must not have any parameters
+- #### Must return void
+
+### Assignment
+
+``` 
+@Slf4j
+@NoArgsConstructor
+class DepBean implements IResource {
+
+    @Override
+    public void initialize() {
+        log.info(">>>>>>> Initializing resource ...");
+    }
+
+    @Override
+    public void close() {
+        log.info(">>>>>>> Closing resource ... ");
+    }
+
+}///:~
+
+@Slf4j
+record FunBean(IResource depBean) implements InitializingBean, DisposableBean {
+
+    FunBean {
+        log.info(">>>>>>> Stage 1.: Calling constructor of the FunBean ... ");
+        Objects.requireNonNull(depBean);
+    }
+
+    @PostConstruct
+    private void initializeAfterConstructor() {
+        log.info(">>>>>>> Stage 2.: Calling @PostConstruct method ... ");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info(">>>>>>> Stage 3.: Calling " +
+                "InitializingBean::afterPropertiesSet method ... ");
+    }
+
+    private void initializeResource() {
+        log.info(">>>>>>> Stage 4.: Calling @Bean::initMethod");
+        this.depBean.initialize();
+    }
+
+    @PreDestroy
+    private void cleanUpBeforeDestroy() {
+        log.info(">>>>>>> Stage 5.: Calling @PreDestroy method ... ");
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        log.info(">>>>>>> Stage 6.: Calling DisposableBean::destroy method ... ");
+    }
+
+    private void closeResource() throws Exception {
+        log.info(">>>>>>> Stage 7.: Calling @Bean::destroyMethod");
+        this.depBean.close();
+    }
+
+}///:~
+
+```
+
+#### Output:
+``` 
+09:05:44.019 [main] DEBUG o.s.b.f.s.DefaultListableBeanFactory - Autowiring by type from bean name 'funBean' via factory method to bean named 'DepBean'
+
+09:05:44.019 [main] INFO  c.y.s.c.d.b.l.assignment.FunBean - >>>>>>> Stage 1.: Calling constructor of the FunBean ... 
+
+09:05:44.021 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor - Found destroy method on class [com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean]: private void com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean.cleanUpBeforeDestroy()
+09:05:44.022 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor - Found init method on class [com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean]: private void com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean.initializeAfterConstructor()
+09:05:44.022 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor - Registered init method on class [com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean]: org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement@298b9643
+09:05:44.022 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor - Registered destroy method on class [com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean]: org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement@f91b78ec
+09:05:44.022 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Eagerly caching bean 'funBean' to allow for resolving potential circular references
+
+09:05:44.022 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor - Invoking init method on bean 'funBean': private void com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean.initializeAfterConstructor()
+09:05:44.022 [main] INFO  c.y.s.c.d.b.l.assignment.FunBean - >>>>>>> Stage 2.: Calling @PostConstruct method ... 
+
+09:05:44.022 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Invoking afterPropertiesSet() on bean with name 'funBean'
+09:05:44.022 [main] INFO  c.y.s.c.d.b.l.assignment.FunBean - >>>>>>> Stage 3.: Calling InitializingBean::afterPropertiesSet method ... 
+
+09:05:44.023 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Invoking init method  'initializeResource' on bean with name 'funBean'
+09:05:44.023 [main] INFO  c.y.s.c.d.b.l.assignment.FunBean - >>>>>>> Stage 4.: Calling @Bean::initMethod
+09:05:44.023 [main] INFO  c.y.s.c.d.b.l.assignment.DepBean - >>>>>>> Initializing resource ...
+
+09:05:44.023 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Finished creating instance of bean 'funBean'
+
+09:05:44.026 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Returning cached instance of singleton bean 'lifecycleProcessor'
+09:05:44.354 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Returning cached instance of singleton bean 'funBean'
+09:05:44.397 [main] DEBUG o.s.c.a.AnnotationConfigApplicationContext - Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@57576994, started on Tue Aug 24 09:05:43 EDT 2021
+09:05:44.398 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Returning cached instance of singleton bean 'lifecycleProcessor'
+
+09:05:44.398 [main] TRACE o.s.b.f.s.DefaultListableBeanFactory - Destroying singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@6f152006: defining beans [org.springframework.context.annotation.internalConfigurationAnnotationProcessor,org.springframework.context.annotation.internalAutowiredAnnotationProcessor,org.springframework.context.annotation.internalCommonAnnotationProcessor,org.springframework.context.event.internalEventListenerProcessor,org.springframework.context.event.internalEventListenerFactory,assignmentCfg,DepBean,funBean]; root of factory hierarchy
+09:05:44.398 [main] TRACE o.s.c.a.CommonAnnotationBeanPostProcessor - Invoking destroy method on bean 'funBean': private void com.yulikexuan.spring.core.di.bean.lifecycle.assignment.FunBean.cleanUpBeforeDestroy()
+09:05:44.398 [main] INFO  c.y.s.c.d.b.l.assignment.FunBean - >>>>>>> Stage 5.: Calling @PreDestroy method ... 
+
+09:05:44.398 [main] TRACE o.s.b.f.s.DisposableBeanAdapter - Invoking destroy() on bean with name 'funBean'
+09:05:44.398 [main] INFO  c.y.s.c.d.b.l.assignment.FunBean - >>>>>>> Stage 6.: Calling DisposableBean::destroy method ... 
+
+09:05:44.398 [main] TRACE o.s.b.f.s.DisposableBeanAdapter - Invoking destroy method 'closeResource' on bean with name 'funBean'
+09:05:44.398 [main] INFO  c.y.s.c.d.b.l.assignment.FunBean - >>>>>>> Stage 7.: Calling @Bean::destroyMethod
+09:05:44.398 [main] INFO  c.y.s.c.d.b.l.assignment.DepBean - >>>>>>> Closing resource ... 
+
+09:05:44.398 [main] TRACE o.s.b.f.s.DisposableBeanAdapter - Invoking destroy method 'close' on bean with name 'DepBean'
+09:05:44.398 [main] INFO  c.y.s.c.d.b.l.assignment.DepBean - >>>>>>> Closing resource ... 
+```
+
+
+## Bean Declaration Inheritance

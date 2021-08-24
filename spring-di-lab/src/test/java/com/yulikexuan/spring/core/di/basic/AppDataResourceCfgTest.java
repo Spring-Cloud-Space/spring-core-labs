@@ -1,12 +1,10 @@
-//: com.yulikexuan.spring.core.di.AppDataResourceCfgTest.java
+//: com.yulikexuan.spring.core.di.basic.AppDataResourceCfgTest.java
 
-package com.yulikexuan.spring.core.di;
+package com.yulikexuan.spring.core.di.basic;
 
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -20,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @DisplayName("Test AppDataResourceCfg - ")
-@ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AppDataResourceCfgTest {
 

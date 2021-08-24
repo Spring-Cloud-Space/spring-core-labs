@@ -1,6 +1,6 @@
-//: com.yulikexuan.spring.core.di.SimpleBean.java
+//: com.yulikexuan.spring.core.di.basic.SimpleBean.java
 
-package com.yulikexuan.spring.core.di;
+package com.yulikexuan.spring.core.di.basic;
 
 
 import java.util.UUID;

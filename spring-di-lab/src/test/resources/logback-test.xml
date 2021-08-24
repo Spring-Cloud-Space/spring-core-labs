@@ -17,9 +17,9 @@
         </encoder>
     </appender>
 
-    <logger name="buckpal" level="debug"/>
+    <logger name="com.yulikexuan.spring.core" level="debug"/>
 
-    <logger name="org.springframework" level="info"/>
+    <logger name="org.springframework" level="trace"/>
 
     <root level="info">
         <appender-ref ref="STDOUT" />

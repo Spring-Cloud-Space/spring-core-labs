@@ -1,6 +1,6 @@
-//: com.yulikexuan.spring.core.di.Book.java
+//: com.yulikexuan.spring.core.di.basic.Book.java
 
-package com.yulikexuan.spring.core.di;
+package com.yulikexuan.spring.core.di.basic;
 
 
 import java.util.Objects;

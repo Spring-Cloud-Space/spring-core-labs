@@ -1,0 +1,7 @@
+spring:
+  core:
+    di:
+      scopes:
+        defaultThemeName: light
+      lifecycle:
+        defaultBeanElementId: f63e16ec-00f2-11ec-9a03-0242ac130003

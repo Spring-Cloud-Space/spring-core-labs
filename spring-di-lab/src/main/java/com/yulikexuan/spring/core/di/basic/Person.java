@@ -1,6 +1,6 @@
-//: com.yulikexuan.spring.core.di.Person.java
+//: com.yulikexuan.spring.core.di.basic.Person.java
 
-package com.yulikexuan.spring.core.di;
+package com.yulikexuan.spring.core.di.basic;
 
 
 import java.util.Objects;
