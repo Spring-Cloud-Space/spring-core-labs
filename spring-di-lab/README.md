@@ -939,3 +939,56 @@ record FunBean(IResource depBean) implements InitializingBean, DisposableBean {
 
 
 ## Bean Declaration Inheritance
+
+### Scenario I Both of Parent and Child are Concrete Classes
+
+``` 
+@Getter
+@ToString
+@Component
+class ParentBean {
+
+    @Value("Smith")
+    String faimilyName;
+
+    String surname;
+
+    ParentBean(@Value("John") String surname) {
+        this.surname = surname;
+    }
+
+}///:~
+```
+
+``` 
+@Getter
+@ToString(callSuper = true)
+@Component
+class ChildBean extends ParentBean {
+
+    private Boolean adult;
+
+    ChildBean(@Value("Lil' John") String surname, @Value("false") Boolean adult) {
+        super(surname);
+        this.adult = adult;
+    }
+
+}///:~
+```
+
+``` 
+@Configuration
+@ComponentScan(basePackages = "com.yulikexuan.spring.core.di.bean.inheritance")
+class FamilyAppCfg {
+}///:~
+```
+
+#### How to create Beans of Parent and Child?
+- Must use bean name (the class name by default) as the parameter with bean 
+  type parameter together
+``` 
+ConfigurableApplicationContext familyAppCtx = 
+        new AnnotationConfigApplicationContext(FamilyAppCfg.class);
+ParentBean parentBean = familyAppCtx.getBean("parentBean", ParentBean.class);
+ChildBean childBean = familyAppCtx.getBean("childBean", ChildBean.class);
+```

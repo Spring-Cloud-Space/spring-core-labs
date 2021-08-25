@@ -17,9 +17,9 @@
         </encoder>
     </appender>
 
-    <logger name="com.yulikexuan.spring.core" level="debug"/>
+    <logger name="com.yulikexuan.spring.core" level="info" />
 
-    <logger name="org.springframework" level="trace"/>
+    <logger name="org.springframework" level="info" />
 
     <root level="info">
         <appender-ref ref="STDOUT" />
