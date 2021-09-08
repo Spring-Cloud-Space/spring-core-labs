@@ -22,7 +22,7 @@
 
     <logger name="buckpal" level="debug"/>
 
-    <logger name="org.springframework" level="debug"/>
+    <logger name="org.springframework" level="info"/>
 
     <root level="info">
         <appender-ref ref="console" />

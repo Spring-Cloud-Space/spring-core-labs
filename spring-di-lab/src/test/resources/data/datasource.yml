@@ -1,8 +1,12 @@
 spring:
   core:
     di:
-      simpleBeanId: ff1fcd7a-f7b3-11eb-9a03-0242ac130003
+      simpleBeanId: "ff1fcd7a-f7b3-11eb-9a03-0242ac130003"
       simpleBeanIsComplicated: false
       assignment:
         book:
-          title: Nevermore
+          title: "Nevermore"
+      scalars:
+        birthDate: "1977-10-17"
+        personName: "John Mayer"
+        noOne: 27

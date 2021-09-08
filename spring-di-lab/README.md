@@ -537,6 +537,17 @@ WebApplicationContext.SCOPE_APPLICATION
 - ``` INTERFACE ``` or ``` TARGET_CLASS ```
 - if this Prototype Bean will be used in any Singleton Bean
 
+``` 
+@Bean
+@Scope(value = SCOPE_PROTOTYPE, proxyMode = INTERFACES)
+UserSettings userSettings(@Value("${spring.core.di.scopes.defaultThemeName}")
+                                  String themeName) {
+
+    String sessionId = RandomStringUtils.randomAlphanumeric(7);
+    return new WebUserSettings(sessionId, themeName);
+}
+```
+
 | ![Proxy_Bean_Behavior_for_Scope_Prototype](images/Proxy_Bean_Behavior_for_Scope_Prototype.png "Proxy_Bean_Behavior_for_Scope_Prototype") |
 | --- |
 
@@ -992,3 +1003,213 @@ ConfigurableApplicationContext familyAppCtx =
 ParentBean parentBean = familyAppCtx.getBean("parentBean", ParentBean.class);
 ChildBean childBean = familyAppCtx.getBean("childBean", ChildBean.class);
 ```
+
+
+## Injecting Dependencies That Are Not Beans
+
+### Create an Instance of ``` Converter ```
+
+``` 
+class StringToLocalDate implements Converter<String, LocalDate> {
+
+    private DateTimeFormatter dateTimeFormatter;
+
+    private StringToLocalDate(DateTimeFormatter dateTimeFormatter) {
+        this.dateTimeFormatter = dateTimeFormatter;
+    }
+
+    static StringToLocalDate of(@NonNull DateTimeFormatter dateTimeFormatter) {
+        return new StringToLocalDate(dateTimeFormatter);
+    }
+
+    @Override
+    public LocalDate convert(String source) {
+        return LocalDate.parse(source, dateTimeFormatter);
+    }
+
+}///:~
+```
+
+### Define the Converter Bean in the configuration class
+
+``` 
+@Bean
+Converter<String, LocalDate> stringToLocalDateConverter(
+        DateTimeFormatter dateTimeFormatter) {
+    return StringToLocalDate.of(dateTimeFormatter);
+}
+```
+
+### Add the Converter to ``` ConversionServiceFactoryBean ``` 
+- in the configuration class
+``` 
+@Bean
+ConversionServiceFactoryBean conversionServiceFactoryBean(
+        Converter<String, LocalDate> stringToLocalDateConverter) {
+
+    ConversionServiceFactoryBean factory = new ConversionServiceFactoryBean();
+    factory.setConverters(Set.of(stringToLocalDateConverter));
+
+    return factory;
+} 
+```
+
+### Define the ``` ConversionService ``` Bean with the ``` ConversionServiceFactoryBean ```
+``` 
+@Bean
+ConversionService conversionService(ConversionServiceFactoryBean factory) {
+    return factory.getObject();
+}
+```
+
+### The whole configuration class
+
+``` 
+package com.yulikexuan.spring.core.di.converter;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ConversionServiceFactoryBean;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Set;
+
+@Configuration
+class ConversionAppCfg {
+
+    static final String SIMPLE_DATE_FORMATTER_PATTERN = "yyyy-MM-dd";
+
+    @Bean
+    ConversionService conversionService(ConversionServiceFactoryBean factory) {
+
+        return factory.getObject();
+    }
+
+    @Bean
+    ConversionServiceFactoryBean conversionServiceFactoryBean(
+            Converter<String, LocalDate> stringToLocalDateConverter) {
+
+        ConversionServiceFactoryBean factory = new ConversionServiceFactoryBean();
+        factory.setConverters(Set.of(stringToLocalDateConverter));
+
+        return factory;
+    }
+
+    @Bean
+    DateTimeFormatter dateTimeFormatter() {
+        return DateTimeFormatter.ofPattern(SIMPLE_DATE_FORMATTER_PATTERN);
+    }
+
+    @Bean
+    Converter<String, LocalDate> stringToLocalDateConverter(
+            DateTimeFormatter dateTimeFormatter) {
+
+        return StringToLocalDate.of(dateTimeFormatter);
+    }
+
+    @Bean
+    Creature personBean(@Value("1977-10-17") LocalDate birthDate,
+                        @Value("John Mayer") String name) {
+
+        return PersonBean.of(birthDate, name);
+    }
+
+}///:~
+```
+
+### The ``` @Value ``` annotation for Inserting Scalar Values
+``` 
+@Autowired
+void setNoOne(@Value("${spring.core.di.scalars.noOne}") int noOne) {
+    this.noOne = noOne;
+}
+```
+
+### Use Collections as Beans
+
+``` 
+class CollectionAppCfg {
+
+    @Bean("element")
+    Element element() {
+        return SimpleElement.of(UUID.randomUUID());
+    }
+
+    @Bean("elementCopy")
+    @Scope(SCOPE_PROTOTYPE)
+    Element elementCopy() {
+        return SimpleElement.of(UUID.randomUUID());
+    }
+
+    @Bean
+    List<Element> simpleBeanList() {
+        return List.of(element(), elementCopy());
+    }
+
+    @Bean
+    Set<Element> simpleBeanSet() {
+        return Set.of(element(), elementCopy());
+    }
+
+    @Bean
+    Map<String, Element> simpleBeanMap() {
+        return Map.of(
+                "SimpleElement", element(),
+                "elementCopy", elementCopy());
+    }
+
+    @Bean
+    EmptyCollectionHolder collectionHolder() {
+        return new EmptyCollectionHolder(simpleBeanList(), simpleBeanSet(),
+                simpleBeanMap());
+    }
+
+}///:~
+```
+
+### Inject Values from Other Beans by Using SpEL
+
+``` 
+@Slf4j
+@Configuration
+class InjectFromBeanPropertiesCfg {
+
+    @Bean
+    public Properties dbProps() {
+
+        Properties p = new Properties();
+
+        p.setProperty("driverClassName", "org.h2.Driver");
+        p.setProperty("url", "jdbc:h2:~/sample");
+        p.setProperty("username", "sample");
+        p.setProperty("password", "sample");
+
+        return p;
+    }
+
+    @Bean
+    public DataSource dataSource(
+            @Value("#{dbProps.driverClassName}") String driverClassName,
+            @Value("#{dbProps.url}") String url,
+            @Value("#{dbProps.username}") String username,
+            @Value("#{dbProps.password}") String password) throws
+            SQLException {
+
+        DriverManagerDataSource ds = new DriverManagerDataSource();
+
+        ds.setDriverClassName(driverClassName);
+        ds.setUrl(url);
+        ds.setUsername(username);
+        ds.setPassword(password);
+
+        return ds;
+    }
+
+}///:~
+```
+
+
+## Bean Factories

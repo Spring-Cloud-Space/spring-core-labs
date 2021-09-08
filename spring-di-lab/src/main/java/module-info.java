@@ -2,6 +2,7 @@ open module com.yulikexuan.spring.core.di {
 
     requires java.validation;
     requires java.annotation;
+    requires java.sql;
 
     requires lombok;
     requires org.apache.commons.lang3;
@@ -11,4 +12,6 @@ open module com.yulikexuan.spring.core.di {
     requires spring.beans;
     requires spring.context;
     requires spring.web;
+    requires spring.jdbc;
+
 }
