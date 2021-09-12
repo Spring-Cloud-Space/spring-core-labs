@@ -6,6 +6,7 @@
 - ### spring-context
 - ### spring-context-support
 - ### spring-expressions
+- ### [spring-test](https://www.baeldung.com/integration-testing-in-spring) 
 
 
 ## The Annotations
@@ -1213,3 +1214,225 @@ class InjectFromBeanPropertiesCfg {
 
 
 ## Bean Factories
+
+### Implements the ``` BeanFactory ``` interface
+
+``` 
+class TaxFormulaFactoryBean implements FactoryBean<TaxFormula> {
+
+    private TaxFormula taxFormula = new ScotlandRateFormula();
+
+    TaxFormulaFactoryBean() {
+        log.info(">>>>>>> Look ma, no definition!");
+    }
+
+    @Override
+    public TaxFormula getObject() throws Exception {
+        return this.taxFormula;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return ScotlandRateFormula.class;
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
+
+}///:~
+```
+
+### Extends the abstract class ``` AbstractBeanFactory ```
+
+``` 
+class FlexTaxFormularFactoryBean extends AbstractFactoryBean<TaxFormula> {
+
+    public FlexTaxFormularFactoryBean() {
+        this.setSingleton(false);
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return ScotlandRateFormula.class;
+    }
+
+    @Override
+    protected TaxFormula createInstance() throws Exception {
+        return new ScotlandRateFormula();
+    }
+    
+}///:~
+```
+
+
+## Autowiring
+
+### This annotation declares the dependencies to be injected
+
+### The bean to process this annotation is
+- ``` internalAutowiredAnnotationProcessor ``` which implementing 
+  ``` AutowiredAnnotationBeanPostProcessor ``` --> ``` BeanPostProcessor ``` 
+
+### The ``` @Autowired ``` requires the dependency to be mandatory
+- Can be changed by setting the required attribute to false
+    ``` 
+    @Autowired(required=false)
+    public void setDataSource(DataSource dataSource) {
+    this.dataSource = dataSource;
+    } 
+    ```
+    - If a bean of type ``` DataSource ``` is not found within the context the
+      value that is injected is ``` null ```
+
+### Use generic types as qualifiers
+- The ``` @Qualifier ``` annotation is no longer needed to name different beans here
+
+``` 
+@Component
+class JdbcDetectiveRepo
+        extends JdbcAbstractRepo<Detective>
+        implements DetectiveRepo {
+
+}///:~
+
+@Component
+class JdbcCriminalCaseRepo
+        extends JdbcAbstractRepo<CriminalCase>
+        implements CriminalCaseRepo {
+
+}///:~
+
+@ContextConfiguration(classes = {AutowiredAppCfg.class})
+@ExtendWith(SpringExtension.class)
+@DisplayName("Test Autowired Annotation - ")
+@ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class AutowiredAppCfgTest {
+
+    @Autowired
+    private JdbcAbstractRepo<Detective> detectiveRepo;
+
+    @Autowired
+    private JdbcAbstractRepo<CriminalCase> criminalCaseRepo;
+
+    @Test
+    void autowired_Annotation_Can_Inject_Generic_Type_Instances() {
+
+        assertThat(this.detectiveRepo).isNotNull();
+        assertThat(this.criminalCaseRepo).isNotNull();
+    }
+
+}///:~
+```
+
+
+## ``` @Lazy ```
+
+### This annotation postpones the creation of a bean until it is first accessed 
+
+### ``` @Lazy ``` can be used with a ``` @Component ``` or ``` @Bean ``` annotation
+- This is useful when the dependency is a huge object, and you do not want to 
+  keep the memory occupied with this object until it is really needed 
+
+``` 
+@Component
+@Lazy
+public class SimpleBean { ... }
+
+// or on a @Bean
+@Configuration
+public class RequestRepoConfig {
+    @Lazy
+    @Bean
+    public RequestRepo anotherRepo(){
+        return new JdbcRequestRepo();
+    }
+}
+```
+
+### The only correct usage that allows the dependency to be lazily initialized 
+
+``` 
+// on injection point
+@Repository
+public class JdbcPetRepo extends JdbcAbstractRepo<Pet>
+        implements PetRepo {
+    ...
+    @Lazy
+    @Autowired(required=false)
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+}
+```
+- Without ``` @Autowired(required = false) ```, the Spring IoC container will 
+  do its normal job and inject dependencies when the bean is created and 
+  ignoring the presence of @Lazy
+
+
+## Meta Annotations
+
+### Many of the annotations provided by Spring can be Meta-Annotations
+
+### A Meta-Annotation can annotate another annotations
+
+### All stereotype specializations are annotated with ``` @Component ```
+
+### Meta-Annotations can be composed to obtain other annotations
+
+``` 
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Transactional("customTransactionManager", timeout="90")
+public @interface CustomTx {
+    boolean readOnly() default false;
+}
+```
+
+
+## Using Multiple Configuration Classes
+
+### Using Spring Test Module
+
+- In a Spring test environment, the spring-test module provides the 
+``` @ContextConfiguration ``` to bootstrap a test environment using one or 
+multiple configuration resources
+
+#### Maven Dependency
+
+``` 
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+```
+
+#### Annotations for Unit Test
+
+``` 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {AutowiredAppCfg.class})
+```
+
+### The spring-test module provides the ``` @ContextConfiguration ```
+- to bootstrap a test environment using one or multiple configuration resources
+- provides a different way to test spring apps by delegating the responsibility 
+  of creating the application context to the ___Spring Test Framework___
+
+
+### The ``` @Import ``` annotation imports the configuration from another class 
+- into the class annotated with it
+
+### Having multiple config classes is useful to separate beans based on their purpose
+
+### Separate infrastructure beans from application beans 
+- Because infrastructure change between environments 
+``` 
+ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(
+        TestDataSourceConfig.class, RepositoryConfig.class);
+```
+
+## End at Page 168

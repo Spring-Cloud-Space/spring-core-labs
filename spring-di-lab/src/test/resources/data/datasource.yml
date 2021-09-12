@@ -1,4 +1,11 @@
 spring:
+  datasource:
+    url: "jdbc:h2:mem:testdb"
+    driverClassName: "org.h2.Driver"
+    username: "sa"
+    password: "password"
+  jap:
+    database-platform: "org.hibernate.dialect.H2Dialect"
   core:
     di:
       simpleBeanId: "ff1fcd7a-f7b3-11eb-9a03-0242ac130003"
